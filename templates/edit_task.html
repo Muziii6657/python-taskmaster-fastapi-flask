@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit Task</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 24px;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+            padding: 24px;
+        }
+        h1 {
+            margin-top: 0;
+        }
+        .field {
+            margin-bottom: 14px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        input, textarea, select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .button {
+            display: inline-block;
+            padding: 9px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #111827;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .button.primary {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #ffffff;
+        }
+        .notice {
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Edit Task #{{ task.id }}</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="notice">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('edit_task', task_id=task.id) }}">
+        <div class="field">
+            <label for="title">Title</label>
+            <input id="title" name="title" type="text" value="{{ task.title }}" required>
+        </div>
+
+        <div class="field">
+            <label for="description">Description</label>
+            <textarea id="description" name="description">{{ task.description or '' }}</textarea>
+        </div>
+
+        <div class="field">
+            <label for="status">Status</label>
+            <select id="status" name="status" required>
+                <option value="todo" {% if task.status == 'todo' %}selected{% endif %}>todo</option>
+                <option value="doing" {% if task.status == 'doing' %}selected{% endif %}>doing</option>
+                <option value="done" {% if task.status == 'done' %}selected{% endif %}>done</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label for="due_date">Due Date</label>
+            <input id="due_date" name="due_date" type="datetime-local" value="{{ task.due_date_input or task.due_date or '' }}">
+        </div>
+
+        <div class="actions">
+            <button class="button primary" type="submit">Save</button>
+            <a class="button" href="{{ url_for('index') }}">Back</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>
