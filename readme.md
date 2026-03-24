@@ -34,18 +34,18 @@
 ## 项目结构
 ---
 task_manager_api/
-├── venv/ # 虚拟环境
-├── app_flask.py # Flask 应用 (管理后台)
-├── config.py # 项目配置 (如数据库 URL)
-├── database.py # 数据库连接、Session工厂、ORM模型基类
-├── main.py # FastAPI 应用主接口服务
-├── models.py # Pydantic 数据模型 和 SQLAlchemy ORM模型
-├── requirements.txt # 项目依赖列表
-├── task_data.json # 用于测试的 JSON 数据文件
-├── templates/ # Flask 页面模板
-│ ├── index.html # 任务列表页
-│ ├── create_task.html # 创建任务页
-│ └── edit_task.html # 编辑任务页
+├── venv/ # 虚拟环境  
+├── app_flask.py # Flask 应用 (管理后台)  
+├── config.py # 项目配置 (如数据库 URL)  
+├── database.py # 数据库连接、Session工厂、ORM模型基类  
+├── main.py # FastAPI 应用主接口服务  
+├── models.py # Pydantic 数据模型 和 SQLAlchemy ORM模型  
+├── requirements.txt # 项目依赖列表  
+├── task_data.json # 用于测试的 JSON 数据文件  
+├── templates/ # Flask 页面模板  
+│ ├── index.html # 任务列表页  
+│ ├── create_task.html # 创建任务页  
+│ └── edit_task.html # 编辑任务页  
 └── README.md # 本文件
 
 ---
