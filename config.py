@@ -1,9 +1,14 @@
-# 本实验原定用config.py来存储配置，但为了简化结构，我们直接在database.py中定义了数据库连接字符串和相关配置。
-# 如果你想把配置单独放在config.py中，可以按照以下方式修改：
-# config.py 
+# -*- coding: utf-8 -*-
+
 import os
 
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
-# 你可以在 .env 文件中设置 DATABASE_URL 环境变量，例如：
-# DATABASE_URL="mysql://root:password@localhost:3306/task_db?charset=utf8mb4"
+DEFAULT_DATABASE_URL = "mysql+pymysql://root:password@localhost:3306/task_db?charset=utf8mb4"
+
+DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
+LLM_API_KEY = os.getenv("LLM_API_KEY", "").strip()
+# ??????????? DeepSeek ???????????????????????????????? OpenAI ???????
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.deepseek.com/v1").rstrip("/")
+LLM_MODEL = os.getenv("LLM_MODEL", "deepseek-chat")
+AI_REQUEST_TIMEOUT = float(os.getenv("AI_REQUEST_TIMEOUT", "30"))
+AI_ENABLED = os.getenv("AI_ENABLED", "1").strip().lower() not in {"0", "false", "no"}

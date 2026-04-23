@@ -1,6 +1,10 @@
 # **TaskMaster: 基于 FastAPI、Flask 和 Pydantic 的个人任务管理系统**
 
 - TaskMaster 是一个功能强大的个人任务管理系统，采用现代化的技术栈构建，提供高效的任务创建、管理和可视化功能。
+  
+---
+！！！请点击左侧 AI赋能优化说明.md 并阅读以了解更新内容！！！
+---
 
 ## 技术栈
 
@@ -10,7 +14,7 @@
 - [Pydantic v2](https://docs.pydantic.dev/latest/): 提供强大的数据验证和序列化能力，确保 API 的健壮性。
 
 *   [SQLAlchemy](https://www.sqlalchemy.org/): 强大的 ORM 工具，用于与数据库交互。
-*   **可选管理后台/前端:**
+*   **管理前端:**
     *   [Flask](https://flask.palletsprojects.com/): 轻量级的 Web 框架，用于构建简单的管理界面，与 FastAPI API 集成。
 *   **数据库:**
     *   [MySQL](https://www.mysql.com/): 关系型数据库，用于持久化存储任务数据。

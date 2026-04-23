@@ -5,3 +5,4 @@ pydantic
 pymysql
 flask
 httpx
+openai
