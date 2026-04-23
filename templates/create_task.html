@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Create Task</title>
+    <title>创建任务</title>
     <style>
         body {
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -13,24 +13,16 @@
             color: #1f2937;
         }
         .container {
-            max-width: 760px;
+            max-width: 900px;
             margin: 0 auto;
             background: #ffffff;
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
             padding: 24px;
         }
-        h1 {
-            margin-top: 0;
-        }
-        .field {
-            margin-bottom: 14px;
-        }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
+        h1, h2 { margin-top: 0; }
+        .field { margin-bottom: 14px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; }
         input, textarea, select {
             width: 100%;
             box-sizing: border-box;
@@ -39,12 +31,10 @@
             border-radius: 8px;
             font-size: 14px;
         }
-        textarea {
-            min-height: 90px;
-            resize: vertical;
-        }
-        .actions {
+        textarea { min-height: 90px; resize: vertical; }
+        .actions, .ai-actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             margin-top: 18px;
         }
@@ -58,11 +48,8 @@
             text-decoration: none;
             cursor: pointer;
         }
-        .button.primary {
-            background: #2563eb;
-            border-color: #2563eb;
-            color: #ffffff;
-        }
+        .button.primary { background: #2563eb; border-color: #2563eb; color: #ffffff; }
+        .button.magic { background: #7c3aed; border-color: #7c3aed; color: #ffffff; }
         .notice {
             padding: 10px 12px;
             border-radius: 8px;
@@ -70,11 +57,45 @@
             background: #fee2e2;
             color: #991b1b;
         }
+        .tip { margin: 0 0 18px; color: #4b5563; }
+        .panel {
+            margin-top: 24px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: #f9fafb;
+            padding: 16px;
+        }
+        .panel.hidden { display: none; }
+        .summary {
+            padding: 12px;
+            background: #eef2ff;
+            border-radius: 10px;
+            margin-bottom: 14px;
+        }
+        .subtask {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #ffffff;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .meta {
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+        .warning-list {
+            margin: 10px 0 0;
+            padding-left: 20px;
+            color: #92400e;
+        }
+        .status-line { margin-top: 10px; color: #374151; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>Create Task</h1>
+    <h1>创建任务</h1>
+    <p class="tip">你可以像以前一样手动创建任务，也可以点击 AI 按钮，把一句复杂目标自动拆成任务树。</p>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -84,19 +105,19 @@
         {% endif %}
     {% endwith %}
 
-    <form method="post" action="{{ url_for('create_task') }}">
+    <form id="manual-task-form" method="post" action="{{ url_for('create_task') }}">
         <div class="field">
-            <label for="title">Title</label>
+            <label for="title">任务标题 / AI 目标</label>
             <input id="title" name="title" type="text" value="{{ form_data.get('title', '') }}" required>
         </div>
 
         <div class="field">
-            <label for="description">Description</label>
+            <label for="description">补充说明</label>
             <textarea id="description" name="description">{{ form_data.get('description', '') }}</textarea>
         </div>
 
         <div class="field">
-            <label for="status">Status</label>
+            <label for="status">状态</label>
             <select id="status" name="status" required>
                 {% set status_value = form_data.get('status', 'todo') %}
                 <option value="todo" {% if status_value == 'todo' %}selected{% endif %}>todo</option>
@@ -106,15 +127,186 @@
         </div>
 
         <div class="field">
-            <label for="due_date">Due Date</label>
+            <label for="due_date">截止时间</label>
             <input id="due_date" name="due_date" type="datetime-local" value="{{ form_data.get('due_date', '') }}">
         </div>
 
         <div class="actions">
-            <button class="button primary" type="submit">Create</button>
-            <a class="button" href="{{ url_for('index') }}">Back</a>
+            <button class="button primary" type="submit">手动创建任务</button>
+            <button id="ai-breakdown-btn" class="button magic" type="button">AI 智能拆解并规划</button>
+            <a class="button" href="{{ url_for('index') }}">返回首页</a>
         </div>
     </form>
+
+    <div id="ai-result-panel" class="panel hidden">
+        <h2>AI 拆解结果</h2>
+        <div id="ai-summary" class="summary"></div>
+        <div id="ai-subtasks"></div>
+        <ul id="ai-warnings" class="warning-list"></ul>
+        <div class="ai-actions">
+            <button id="save-ai-plan-btn" class="button primary" type="button">确认并保存任务树</button>
+            <button id="clear-ai-plan-btn" class="button" type="button">清空本次结果</button>
+        </div>
+        <p id="ai-status-line" class="status-line"></p>
+    </div>
 </div>
+
+<script>
+    const fastapiBaseUrl = "{{ fastapi_base_url }}";
+    const titleInput = document.getElementById('title');
+    const descriptionInput = document.getElementById('description');
+    const aiButton = document.getElementById('ai-breakdown-btn');
+    const saveButton = document.getElementById('save-ai-plan-btn');
+    const clearButton = document.getElementById('clear-ai-plan-btn');
+    const resultPanel = document.getElementById('ai-result-panel');
+    const summaryBox = document.getElementById('ai-summary');
+    const subtasksBox = document.getElementById('ai-subtasks');
+    const warningsBox = document.getElementById('ai-warnings');
+    const statusLine = document.getElementById('ai-status-line');
+
+    let latestAiPlan = null;
+
+    function setStatus(message) {
+        statusLine.textContent = message || '';
+    }
+
+    async function parseJsonSafe(response) {
+        const rawText = await response.text();
+        if (!rawText) {
+            return null;
+        }
+        try {
+            return JSON.parse(rawText);
+        } catch (error) {
+            return { detail: rawText };
+        }
+    }
+
+    function resolveFetchError(error, fallbackMessage) {
+        if (error instanceof TypeError) {
+            return '无法连接到 AI 后端，请确认 FastAPI 已启动在 http://127.0.0.1:8000，且后端没有报错退出。';
+        }
+        return error.message || fallbackMessage;
+    }
+
+    function renderPlan(plan) {
+        latestAiPlan = plan;
+        resultPanel.classList.remove('hidden');
+        summaryBox.innerHTML = `
+            <strong>总任务：</strong>${plan.root_task_title}<br>
+            <strong>总结：</strong>${plan.summary}
+        `;
+
+        subtasksBox.innerHTML = '';
+        plan.suggestions.forEach((item, index) => {
+            const element = document.createElement('div');
+            element.className = 'subtask';
+            element.innerHTML = `
+                <strong>${index + 1}. ${item.title}</strong>
+                <div>${item.description || '暂无补充说明'}</div>
+                <div class="meta">
+                    预计耗时：${item.estimated_hours ?? '未知'} 小时 |
+                    优先级：${item.priority} |
+                    依赖：${item.dependencies.length ? item.dependencies.join(', ') : '无'}
+                </div>
+            `;
+            subtasksBox.appendChild(element);
+        });
+
+        warningsBox.innerHTML = '';
+        (plan.warnings || []).forEach((warning) => {
+            const item = document.createElement('li');
+            item.textContent = warning;
+            warningsBox.appendChild(item);
+        });
+    }
+
+    function clearPlan() {
+        latestAiPlan = null;
+        resultPanel.classList.add('hidden');
+        summaryBox.innerHTML = '';
+        subtasksBox.innerHTML = '';
+        warningsBox.innerHTML = '';
+        setStatus('');
+    }
+
+    aiButton.addEventListener('click', async () => {
+        const goal = titleInput.value.trim();
+        const description = descriptionInput.value.trim();
+
+        if (!goal) {
+            window.alert('请先输入任务标题或一句话目标。');
+            return;
+        }
+
+        aiButton.disabled = true;
+        setStatus('AI 正在拆解任务，请稍候...');
+
+        try {
+            const response = await fetch(`${fastapiBaseUrl}/api/ai/breakdown-task`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ goal, description: description || null })
+            });
+
+            const data = await parseJsonSafe(response);
+            if (!response.ok) {
+                throw new Error(data?.detail || 'AI 拆解失败');
+            }
+
+            renderPlan(data);
+            setStatus('AI 拆解完成，请确认后保存。');
+        } catch (error) {
+            clearPlan();
+            const message = resolveFetchError(error, 'AI 拆解失败，请稍后重试。');
+            setStatus(message);
+            window.alert(message);
+        } finally {
+            aiButton.disabled = false;
+        }
+    });
+
+    saveButton.addEventListener('click', async () => {
+        if (!latestAiPlan) {
+            window.alert('当前没有可保存的 AI 方案。');
+            return;
+        }
+
+        saveButton.disabled = true;
+        setStatus('正在保存 AI 任务树...');
+
+        try {
+            const response = await fetch(`${fastapiBaseUrl}/api/ai/save-breakdown`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    root_task: {
+                        title: latestAiPlan.root_task_title,
+                        description: descriptionInput.value.trim() || latestAiPlan.summary,
+                        due_date: null
+                    },
+                    subtasks: latestAiPlan.suggestions
+                })
+            });
+
+            const data = await parseJsonSafe(response);
+            if (!response.ok) {
+                throw new Error(data?.detail || '保存失败');
+            }
+
+            setStatus(`保存成功，共创建 ${data.length} 条任务。正在返回首页...`);
+            window.location.href = "{{ url_for('index') }}";
+        } catch (error) {
+
+            const message = resolveFetchError(error, '保存失败');
+            window.alert(message);
+            setStatus(message);
+        } finally {
+            saveButton.disabled = false;
+        }
+    });
+
+    clearButton.addEventListener('click', clearPlan);
+</script>
 </body>
 </html>

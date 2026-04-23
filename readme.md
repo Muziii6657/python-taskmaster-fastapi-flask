@@ -10,7 +10,7 @@
 - [Pydantic v2](https://docs.pydantic.dev/latest/): 提供强大的数据验证和序列化能力，确保 API 的健壮性。
 
 *   [SQLAlchemy](https://www.sqlalchemy.org/): 强大的 ORM 工具，用于与数据库交互。
-*   **可选管理后台/前端:**
+*   **管理前端:**
     *   [Flask](https://flask.palletsprojects.com/): 轻量级的 Web 框架，用于构建简单的管理界面，与 FastAPI API 集成。
 *   **数据库:**
     *   [MySQL](https://www.mysql.com/): 关系型数据库，用于持久化存储任务数据。

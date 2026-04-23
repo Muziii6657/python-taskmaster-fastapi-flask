@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import httpx
 from datetime import datetime
 

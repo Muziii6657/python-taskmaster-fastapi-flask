@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Edit Task</title>
+    <title>编辑任务</title>
     <style>
         body {
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -74,7 +74,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>Edit Task #{{ task.id }}</h1>
+    <h1>编辑任务 #{{ task.id }}</h1>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -86,17 +86,17 @@
 
     <form method="post" action="{{ url_for('edit_task', task_id=task.id) }}">
         <div class="field">
-            <label for="title">Title</label>
+            <label for="title">任务标题</label>
             <input id="title" name="title" type="text" value="{{ task.title }}" required>
         </div>
 
         <div class="field">
-            <label for="description">Description</label>
+            <label for="description">任务描述</label>
             <textarea id="description" name="description">{{ task.description or '' }}</textarea>
         </div>
 
         <div class="field">
-            <label for="status">Status</label>
+            <label for="status">状态</label>
             <select id="status" name="status" required>
                 <option value="todo" {% if task.status == 'todo' %}selected{% endif %}>todo</option>
                 <option value="doing" {% if task.status == 'doing' %}selected{% endif %}>doing</option>
@@ -105,15 +105,27 @@
         </div>
 
         <div class="field">
-            <label for="due_date">Due Date</label>
+            <label for="due_date">截止时间</label>
             <input id="due_date" name="due_date" type="datetime-local" value="{{ task.due_date_input or task.due_date or '' }}">
         </div>
 
+        <div class="field">
+            <label for="execution_notes">执行心得 / 经验复盘</label>
+            <textarea id="execution_notes" name="execution_notes">{{ task.execution_notes or '' }}</textarea>
+        </div>
+
+        <div class="field">
+            <label for="actual_hours">实际耗时（小时）</label>
+            <input id="actual_hours" name="actual_hours" type="number" min="0" step="0.5" value="{{ task.actual_hours or '' }}">
+        </div>
+
         <div class="actions">
-            <button class="button primary" type="submit">Save</button>
-            <a class="button" href="{{ url_for('index') }}">Back</a>
+            <button class="button primary" type="submit">保存修改</button>
+            <a class="button" href="{{ url_for('index') }}">返回首页</a>
         </div>
     </form>
 </div>
 </body>
 </html>
+
+
